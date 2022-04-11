@@ -23,3 +23,12 @@ func CreateTodo(id any, title any, completed any) {
 	}
 	defer db.Close()
 }
+
+func GetTodo(params map[string]string) *sql.Rows {
+	db := InitDatabase()
+	result, err := db.Query("SELECT Id, Content, Completed FROM todo WHERE Id = ?", params["Id"])
+	if err != nil {
+		panic(err.Error())
+	}
+	return result
+}

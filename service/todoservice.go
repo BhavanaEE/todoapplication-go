@@ -32,3 +32,16 @@ func CreateTodo(r io.ReadCloser) {
 	completed := keyVal["Completed"]
 	database.CreateTodo(id, title, completed)
 }
+
+func GetTodo(params map[string]string) model.Todo {
+	result := database.GetTodo(params)
+	var todo model.Todo
+	for result.Next() {
+		err := result.Scan(&todo.Id, &todo.Content, &todo.Completed)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	defer result.Close()
+	return todo
+}
