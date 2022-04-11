@@ -13,3 +13,13 @@ func GetAllTodos() *sql.Rows {
 	defer db.Close()
 	return result
 }
+
+func CreateTodo(id any, title any, completed any) {
+	db := InitDatabase()
+
+	err := db.QueryRow("INSERT INTO todo(Id,Content, Completed) VALUES(?, ?, ?);", id, title, completed).Scan(&id)
+	if err == nil {
+		panic(err.Error())
+	}
+	defer db.Close()
+}

@@ -1,6 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"todoapplication/database"
 	"todoapplication/model"
 )
@@ -17,4 +20,15 @@ func GetAllTodos() []model.Todo {
 		todos = append(todos, todo)
 	}
 	return todos
+}
+
+func CreateTodo(r io.ReadCloser) {
+	responseBody, _ := ioutil.ReadAll(r)
+	keyVal := make(map[string]any)
+	json.Unmarshal(responseBody, &keyVal)
+
+	id := keyVal["Id"]
+	title := keyVal["Content"]
+	completed := keyVal["Completed"]
+	database.CreateTodo(id, title, completed)
 }
