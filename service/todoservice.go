@@ -45,3 +45,7 @@ func GetTodo(params map[string]string) model.Todo {
 	defer result.Close()
 	return todo
 }
+
+func UpdateTodo(keyvalues map[string]any) {
+	database.UpdateTodo(keyvalues)
+}

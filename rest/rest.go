@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"net/http"
 	"todoapplication/service"
 )
@@ -24,4 +25,15 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 	todo := service.GetTodo(mux.Vars(r))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(todo)
+}
+
+func UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err.Error())
+	}
+	keyVal := make(map[string]any)
+	json.Unmarshal(body, &keyVal)
+	service.UpdateTodo(keyVal)
+	fmt.Fprintf(w, "Todo with ID = %v was updated", keyVal["Id"])
 }

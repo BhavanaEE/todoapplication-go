@@ -32,3 +32,12 @@ func GetTodo(params map[string]string) *sql.Rows {
 	}
 	return result
 }
+
+func UpdateTodo(params map[string]any) {
+	db := InitDatabase()
+	stmt, err := db.Prepare("UPDATE todo SET Content = ?, Completed=? WHERE Id = ?")
+	_, err = stmt.Exec(params["Content"], params["Completed"], params["Id"])
+	if err != nil {
+		panic(err.Error())
+	}
+}
