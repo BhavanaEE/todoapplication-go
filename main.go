@@ -13,6 +13,6 @@ func main() {
 	router.HandleFunc("/todos", rest.CreateTodo).Methods("POST")
 	router.HandleFunc("/todos/{Id}", rest.GetTodo).Methods("GET")
 	router.HandleFunc("/todos/{Id}", rest.UpdateTodo).Methods("PUT")
-
+	router.HandleFunc("/todos/{Id}", rest.DeleteTodo).Methods("DELETE")
 	http.ListenAndServe(":8000", router)
 }

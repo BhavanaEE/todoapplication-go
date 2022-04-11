@@ -37,3 +37,10 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	service.UpdateTodo(keyVal)
 	fmt.Fprintf(w, "Todo with ID = %v was updated", keyVal["Id"])
 }
+
+func DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	service.DeleteTodo(params["Id"])
+
+	fmt.Fprintf(w, "Todo with ID = %s was deleted", params["Id"])
+}

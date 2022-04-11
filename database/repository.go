@@ -41,3 +41,12 @@ func UpdateTodo(params map[string]any) {
 		panic(err.Error())
 	}
 }
+
+func DeleteTodo(param string) {
+	db := InitDatabase()
+	stmt, err := db.Prepare("DELETE FROM todo WHERE Id = ?")
+	_, err = stmt.Exec(param)
+	if err != nil {
+		panic(err.Error())
+	}
+}

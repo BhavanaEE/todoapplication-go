@@ -49,3 +49,7 @@ func GetTodo(params map[string]string) model.Todo {
 func UpdateTodo(keyvalues map[string]any) {
 	database.UpdateTodo(keyvalues)
 }
+
+func DeleteTodo(params string) {
+	database.DeleteTodo(params)
+}
