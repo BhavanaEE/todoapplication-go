@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"todoapplication/model"
 )
 
 func GetAllTodos() *sql.Rows {
@@ -24,19 +25,19 @@ func CreateTodo(id any, title any, completed any) {
 	defer db.Close()
 }
 
-func GetTodo(params map[string]string) *sql.Rows {
+func GetTodo(params string) *sql.Rows {
 	db := InitDatabase()
-	result, err := db.Query("SELECT Id, Content, Completed FROM todo WHERE Id = ?", params["Id"])
+	result, err := db.Query("SELECT Id, Content, Completed FROM todo WHERE Id = ?", params)
 	if err != nil {
 		panic(err.Error())
 	}
 	return result
 }
 
-func UpdateTodo(params map[string]any) {
+func UpdateTodo(params model.Todo) {
 	db := InitDatabase()
 	stmt, err := db.Prepare("UPDATE todo SET Content = ?, Completed=? WHERE Id = ?")
-	_, err = stmt.Exec(params["Content"], params["Completed"], params["Id"])
+	_, err = stmt.Exec(params.Content, params.Completed, params.Id)
 	if err != nil {
 		panic(err.Error())
 	}

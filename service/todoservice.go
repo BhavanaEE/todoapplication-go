@@ -1,9 +1,6 @@
 package service
 
 import (
-	"encoding/json"
-	"io"
-	"io/ioutil"
 	"todoapplication/database"
 	"todoapplication/model"
 )
@@ -22,18 +19,14 @@ func GetAllTodos() []model.Todo {
 	return todos
 }
 
-func CreateTodo(r io.ReadCloser) {
-	responseBody, _ := ioutil.ReadAll(r)
-	keyVal := make(map[string]any)
-	json.Unmarshal(responseBody, &keyVal)
-
-	id := keyVal["Id"]
-	title := keyVal["Content"]
-	completed := keyVal["Completed"]
+func CreateTodo(newTodo model.Todo) {
+	id := newTodo.Id
+	title := newTodo.Content
+	completed := newTodo.Completed
 	database.CreateTodo(id, title, completed)
 }
 
-func GetTodo(params map[string]string) model.Todo {
+func GetTodo(params string) model.Todo {
 	result := database.GetTodo(params)
 	var todo model.Todo
 	for result.Next() {
@@ -46,7 +39,7 @@ func GetTodo(params map[string]string) model.Todo {
 	return todo
 }
 
-func UpdateTodo(keyvalues map[string]any) {
+func UpdateTodo(keyvalues model.Todo) {
 	database.UpdateTodo(keyvalues)
 }
 

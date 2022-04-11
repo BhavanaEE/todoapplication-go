@@ -1,18 +1,17 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
-	"net/http"
 	"todoapplication/rest"
 )
 
 func main() {
-	router := mux.NewRouter()
-	router.HandleFunc("/todos", rest.GetTodos).Methods("GET")
-	router.HandleFunc("/todos", rest.CreateTodo).Methods("POST")
-	router.HandleFunc("/todos/{Id}", rest.GetTodo).Methods("GET")
-	router.HandleFunc("/todos/{Id}", rest.UpdateTodo).Methods("PUT")
-	router.HandleFunc("/todos/{Id}", rest.DeleteTodo).Methods("DELETE")
-	http.ListenAndServe(":8000", router)
+	router := gin.Default()
+	router.GET("/todos", rest.GetTodos)
+	router.POST("/todos", rest.CreateTodo)
+	router.GET("/todos/:Id", rest.GetTodo)
+	router.PUT("/todos/:Id", rest.UpdateTodo)
+	router.DELETE("/todos/:Id", rest.DeleteTodo)
+	router.Run("localhost:8080")
 }
