@@ -5,8 +5,8 @@ import (
 	"todoapplication/model"
 )
 
-func GetAllTodos() []model.Todo {
-	result := database.GetAllTodos()
+func GetAllTodos() ([]model.Todo, error) {
+	result, err := database.GetAllTodos()
 	var todos []model.Todo
 	for result.Next() {
 		var todo model.Todo
@@ -16,19 +16,27 @@ func GetAllTodos() []model.Todo {
 		}
 		todos = append(todos, todo)
 	}
-	return todos
+	return todos, err
 }
 
-func CreateTodo(newTodo model.Todo) {
+func CreateTodo(newTodo model.Todo) (int, error) {
 	id := newTodo.Id
 	title := newTodo.Content
 	completed := newTodo.Completed
-	database.CreateTodo(id, title, completed)
+	exists, err := database.IsTodoExists(string(id))
+	if err != nil || !exists.Next() {
+		return 0, err
+	}
+	todo, err := database.CreateTodo(id, title, completed)
+	if todo.Next() || err != nil {
+		return 1, err
+	}
+	return 0, err
 }
 
-func GetTodo(params string) model.Todo {
-	result := database.GetTodo(params)
+func GetTodo(params string) (model.Todo, error) {
 	var todo model.Todo
+	result, err := database.GetTodo(params)
 	for result.Next() {
 		err := result.Scan(&todo.Id, &todo.Content, &todo.Completed)
 		if err != nil {
@@ -36,13 +44,17 @@ func GetTodo(params string) model.Todo {
 		}
 	}
 	defer result.Close()
-	return todo
+	return todo, err
 }
 
-func UpdateTodo(keyvalues model.Todo) {
-	database.UpdateTodo(keyvalues)
+func UpdateTodo(id string, keyvalues model.Todo) (int64, error) {
+	exists, err := database.IsTodoExists(id)
+	if err != nil || !exists.Next() {
+		return 0, err
+	}
+	return database.UpdateTodo(keyvalues)
 }
 
-func DeleteTodo(params string) {
-	database.DeleteTodo(params)
+func DeleteTodo(params string) (int64, error) {
+	return database.DeleteTodo(params)
 }
