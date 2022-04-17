@@ -22,14 +22,14 @@ func (a *Api) GetTodos(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, todos)
 }
 
-func CreateTodo(c *gin.Context) {
+func (a *Api) CreateTodo(c *gin.Context) {
 	var newTodo model.Todo
 	err := c.BindJSON(&newTodo)
 	if err != nil {
 		c.IndentedJSON(http.StatusUnsupportedMediaType, gin.H{"message": "unable to parse body"})
 		return
 	}
-	todo, err := service.CreateTodo(newTodo)
+	todo, err := service.CreateTodo(newTodo, a.Db)
 	if todo == 0 || err != nil {
 		c.IndentedJSON(http.StatusConflict, gin.H{"message": "Todo with provided ID Exists"})
 		return

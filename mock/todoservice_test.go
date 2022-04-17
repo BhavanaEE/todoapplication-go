@@ -11,6 +11,8 @@ import (
 	"todoapplication/service"
 )
 
+var todo = &model.Todo{Id: 1, Content: "Golang", Completed: false}
+
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -108,4 +110,42 @@ func TestShouldReturnEmptyResultForIdDoesNotExist(t *testing.T) {
 	}
 
 	assert.Equal(t, expected, actual, "The two words should be the same.")
+}
+
+func TestShouldCreateTodoWhenIdDoesNotExists(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
+	id := 1
+	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
+
+	query2 := "INSERT INTO todo \\(id, content, completed\\) VALUES \\(\\?, \\?, \\?\\)"
+	prep := mock.ExpectPrepare(query2)
+	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err := service.CreateTodo(*todo, api.Db)
+	assert.NoError(t, err)
+
+}
+
+func TestShouldNotCreateTodoWhenIdExists(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
+		AddRow(1, "Golang", false)
+	id := 1
+	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
+
+	query2 := "INSERT INTO todo \\(id, content, completed\\) VALUES \\(\\?, \\?, \\?\\)"
+	prep := mock.ExpectPrepare(query2)
+	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	_, err := service.CreateTodo(*todo, api.Db)
+	assert.NoError(t, err)
+
 }

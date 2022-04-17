@@ -12,6 +12,10 @@ func main() {
 	api := &rest.Api{db}
 	router := gin.Default()
 	router.GET("/todos", api.GetTodos)
+	router.POST("/todos", api.CreateTodo)
 	router.GET("/todos/:Id", api.GetTodo)
+	router.PUT("/todos/:Id", rest.UpdateTodo)
+	router.DELETE("/todos/:Id", rest.DeleteTodo)
+
 	router.Run("localhost:8080")
 }

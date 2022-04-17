@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"fmt"
 	"todoapplication/database"
 	"todoapplication/model"
 )
@@ -20,16 +21,18 @@ func GetAllTodos(db *sql.DB) ([]model.Todo, error) {
 	return todos, err
 }
 
-func CreateTodo(newTodo model.Todo) (int, error) {
+func CreateTodo(newTodo model.Todo, db *sql.DB) (int, error) {
 	id := newTodo.Id
 	title := newTodo.Content
 	completed := newTodo.Completed
-	exists, err := database.IsTodoExists(id)
-	if err != nil || !exists.Next() {
+	exists, err := database.IsTodoExists(id, db)
+	next := exists.Next()
+	fmt.Println(next)
+	if err != nil || exists.Next() {
 		return 0, err
 	}
-	todo, err := database.CreateTodo(id, title, completed)
-	if todo.Next() || err != nil {
+	todo, err := database.CreateTodo(id, title, completed, db)
+	if todo == 1 && err == nil {
 		return 1, err
 	}
 	return 0, err

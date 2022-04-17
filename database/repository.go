@@ -11,11 +11,13 @@ func GetAllTodos(db *sql.DB) (*sql.Rows, error) {
 	return result, err
 }
 
-func CreateTodo(id any, title any, completed any) (*sql.Rows, error) {
-	db := InitDatabase()
-	result, err := db.Query("INSERT INTO todo(Id,Content, Completed) VALUES(?, ?, ?);", id, title, completed)
+func CreateTodo(id any, title any, completed any, db *sql.DB) (int64, error) {
+	query := "INSERT INTO todo (id, content, completed) VALUES (?, ?, ?)"
+	stmt, err := db.Prepare(query)
+	result, err := stmt.Exec(id, title, completed)
+	affected, err := result.RowsAffected()
 	defer db.Close()
-	return result, err
+	return affected, err
 }
 
 func GetTodo(params int, db *sql.DB) (*sql.Rows, error) {
@@ -23,7 +25,6 @@ func GetTodo(params int, db *sql.DB) (*sql.Rows, error) {
 }
 func IsTodoExists(id int, db *sql.DB) (*sql.Rows, error) {
 	rows, err := db.Query("SELECT id, content, completed FROM todo WHERE id = ?", id)
-	defer db.Close()
 	return rows, err
 }
 func UpdateTodo(params model.Todo) (int64, error) {
