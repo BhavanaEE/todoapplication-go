@@ -35,10 +35,9 @@ func UpdateTodo(params model.Todo, db *sql.DB) (int, error) {
 	return int(affected), err
 }
 
-func DeleteTodo(param string) (int64, error) {
-	db := InitDatabase()
-	stmt, err := db.Prepare("DELETE FROM todo WHERE Id = ?")
-	result, err := stmt.Exec(param)
+func DeleteTodo(id int, db *sql.DB) (int, error) {
+	stmt, err := db.Prepare("DELETE FROM todo WHERE id = ?")
+	result, err := stmt.Exec(id)
 	affected, err := result.RowsAffected()
-	return affected, err
+	return int(affected), err
 }

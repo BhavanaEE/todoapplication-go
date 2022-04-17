@@ -15,7 +15,7 @@ func main() {
 	router.POST("/todos", api.CreateTodo)
 	router.GET("/todos/:Id", api.GetTodo)
 	router.PUT("/todos/:Id", api.UpdateTodo)
-	router.DELETE("/todos/:Id", rest.DeleteTodo)
+	router.DELETE("/todos/:Id", api.DeleteTodo)
 
 	router.Run("localhost:8080")
 }

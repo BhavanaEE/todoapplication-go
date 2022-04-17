@@ -188,3 +188,36 @@ func TestShouldNotUpdateTodo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, isUpdated)
 }
+
+func TestShouldDeleteTodoIfIdExists(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query := "DELETE FROM todo WHERE id = \\?"
+
+	id := 1
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	isDeleted, err := service.DeleteTodo(id, api.Db)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, isDeleted)
+
+}
+
+func TestShouldThrowErrorIfIdDoesNotExists(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query := "DELETE FROM todo WHERE id = \\?"
+
+	id := 4
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	isDeleted, err := service.DeleteTodo(id, api.Db)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, isDeleted)
+}

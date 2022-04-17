@@ -64,9 +64,10 @@ func (a *Api) UpdateTodo(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "updated"})
 }
 
-func DeleteTodo(c *gin.Context) {
+func (a *Api) DeleteTodo(c *gin.Context) {
 	params := c.Param("Id")
-	todo, err := service.DeleteTodo(params)
+	id, _ := strconv.Atoi(params)
+	todo, err := service.DeleteTodo(id, a.Db)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Todo not found"})
 		return

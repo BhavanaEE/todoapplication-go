@@ -59,6 +59,6 @@ func UpdateTodo(id int, todo model.Todo, db *sql.DB) (int, error) {
 	return database.UpdateTodo(todo, db)
 }
 
-func DeleteTodo(params string) (int64, error) {
-	return database.DeleteTodo(params)
+func DeleteTodo(id int, db *sql.DB) (int, error) {
+	return database.DeleteTodo(id, db)
 }
