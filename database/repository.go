@@ -5,9 +5,8 @@ import (
 	"todoapplication/model"
 )
 
-func GetAllTodos() (*sql.Rows, error) {
-	db := InitDatabase()
-	result, err := db.Query("SELECT * from todo")
+func GetAllTodos(db *sql.DB) (*sql.Rows, error) {
+	result, err := db.Query("SELECT id, content, completed FROM todo")
 	defer db.Close()
 	return result, err
 }
@@ -19,12 +18,12 @@ func CreateTodo(id any, title any, completed any) (*sql.Rows, error) {
 	return result, err
 }
 
-func GetTodo(params string) (*sql.Rows, error) {
+func GetTodo(params int) (*sql.Rows, error) {
 	return IsTodoExists(params)
 }
-func IsTodoExists(id string) (*sql.Rows, error) {
+func IsTodoExists(id int) (*sql.Rows, error) {
 	db := InitDatabase()
-	rows, err := db.Query("SELECT * from todo where Id=?", id)
+	rows, err := db.Query("SELECT id, content, completed FROM todo WHERE id = ?", id)
 	defer db.Close()
 	return rows, err
 }

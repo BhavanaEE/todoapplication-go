@@ -1,14 +1,20 @@
 package rest
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"todoapplication/model"
 	"todoapplication/service"
 )
 
-func GetTodos(c *gin.Context) {
-	todos, err := service.GetAllTodos()
+type Api struct {
+	Db *sql.DB
+}
+
+func (a *Api) GetTodos(c *gin.Context) {
+	todos, err := service.GetAllTodos(a.Db)
 	if err != nil {
 		c.IndentedJSON(http.StatusServiceUnavailable, gin.H{"message": "Server is not ready to handle the request"})
 		return
@@ -32,7 +38,7 @@ func CreateTodo(c *gin.Context) {
 }
 
 func GetTodo(c *gin.Context) {
-	id := c.Param("Id")
+	id, _ := strconv.Atoi(c.Param("Id"))
 	todo, err := service.GetTodo(id)
 	if todo.Id == 0 || err != nil {
 		c.IndentedJSON(http.StatusOK, gin.H{"message": "Todo Id doesn't exists"})
@@ -44,11 +50,12 @@ func GetTodo(c *gin.Context) {
 func UpdateTodo(c *gin.Context) {
 	var updateTodo model.Todo
 	err := c.BindJSON(&updateTodo)
-	id := c.Param("Id")
+	params := c.Param("Id")
 	if err != nil {
 		c.IndentedJSON(http.StatusUnsupportedMediaType, gin.H{"message": "unable to parse body"})
 		return
 	}
+	id, _ := strconv.Atoi(params)
 	todo, err := service.UpdateTodo(id, updateTodo)
 	if err != nil || todo == 0 {
 		c.IndentedJSON(http.StatusConflict, gin.H{"message": "Todo with provided ID doesnt Exists"})

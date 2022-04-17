@@ -1,12 +1,13 @@
 package service
 
 import (
+	"database/sql"
 	"todoapplication/database"
 	"todoapplication/model"
 )
 
-func GetAllTodos() ([]model.Todo, error) {
-	result, err := database.GetAllTodos()
+func GetAllTodos(db *sql.DB) ([]model.Todo, error) {
+	result, err := database.GetAllTodos(db)
 	var todos []model.Todo
 	for result.Next() {
 		var todo model.Todo
@@ -23,7 +24,7 @@ func CreateTodo(newTodo model.Todo) (int, error) {
 	id := newTodo.Id
 	title := newTodo.Content
 	completed := newTodo.Completed
-	exists, err := database.IsTodoExists(string(id))
+	exists, err := database.IsTodoExists(id)
 	if err != nil || !exists.Next() {
 		return 0, err
 	}
@@ -34,9 +35,9 @@ func CreateTodo(newTodo model.Todo) (int, error) {
 	return 0, err
 }
 
-func GetTodo(params string) (model.Todo, error) {
+func GetTodo(id int) (model.Todo, error) {
 	var todo model.Todo
-	result, err := database.GetTodo(params)
+	result, err := database.GetTodo(id)
 	for result.Next() {
 		err := result.Scan(&todo.Id, &todo.Content, &todo.Completed)
 		if err != nil {
@@ -47,7 +48,7 @@ func GetTodo(params string) (model.Todo, error) {
 	return todo, err
 }
 
-func UpdateTodo(id string, keyvalues model.Todo) (int64, error) {
+func UpdateTodo(id int, keyvalues model.Todo) (int64, error) {
 	exists, err := database.IsTodoExists(id)
 	if err != nil || !exists.Next() {
 		return 0, err
