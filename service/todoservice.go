@@ -35,9 +35,9 @@ func CreateTodo(newTodo model.Todo) (int, error) {
 	return 0, err
 }
 
-func GetTodo(id int) (model.Todo, error) {
+func GetTodo(id int, db *sql.DB) (model.Todo, error) {
 	var todo model.Todo
-	result, err := database.GetTodo(id)
+	result, err := database.GetTodo(id, db)
 	for result.Next() {
 		err := result.Scan(&todo.Id, &todo.Content, &todo.Completed)
 		if err != nil {

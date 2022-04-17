@@ -37,9 +37,9 @@ func CreateTodo(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newTodo)
 }
 
-func GetTodo(c *gin.Context) {
+func (a *Api) GetTodo(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("Id"))
-	todo, err := service.GetTodo(id)
+	todo, err := service.GetTodo(id, a.Db)
 	if todo.Id == 0 || err != nil {
 		c.IndentedJSON(http.StatusOK, gin.H{"message": "Todo Id doesn't exists"})
 		return

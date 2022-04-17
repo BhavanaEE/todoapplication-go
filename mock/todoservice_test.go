@@ -68,3 +68,44 @@ func TestShouldFailToGetAllTodos(t *testing.T) {
 	assert.NotEqualf(t, expected, actual, "The two words should be the same.")
 
 }
+
+func TestShouldGetTodoById(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
+
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
+		AddRow(1, "Golang", false)
+	id := 1
+	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
+
+	actual, _ := service.GetTodo(id, api.Db)
+
+	expected := model.Todo{
+		Id: 1, Content: "Golang", Completed: false,
+	}
+
+	assert.Equal(t, expected, actual, "The two words should be the same.")
+}
+
+func TestShouldReturnEmptyResultForIdDoesNotExist(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
+
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
+	id := 2
+	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
+
+	actual, _ := service.GetTodo(id, api.Db)
+
+	expected := model.Todo{
+		Id: 0, Content: "", Completed: false,
+	}
+
+	assert.Equal(t, expected, actual, "The two words should be the same.")
+}

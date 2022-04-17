@@ -18,11 +18,10 @@ func CreateTodo(id any, title any, completed any) (*sql.Rows, error) {
 	return result, err
 }
 
-func GetTodo(params int) (*sql.Rows, error) {
-	return IsTodoExists(params)
+func GetTodo(params int, db *sql.DB) (*sql.Rows, error) {
+	return IsTodoExists(params, db)
 }
-func IsTodoExists(id int) (*sql.Rows, error) {
-	db := InitDatabase()
+func IsTodoExists(id int, db *sql.DB) (*sql.Rows, error) {
 	rows, err := db.Query("SELECT id, content, completed FROM todo WHERE id = ?", id)
 	defer db.Close()
 	return rows, err
