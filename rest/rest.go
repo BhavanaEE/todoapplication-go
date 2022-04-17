@@ -47,7 +47,7 @@ func (a *Api) GetTodo(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, todo)
 }
 
-func UpdateTodo(c *gin.Context) {
+func (a *Api) UpdateTodo(c *gin.Context) {
 	var updateTodo model.Todo
 	err := c.BindJSON(&updateTodo)
 	params := c.Param("Id")
@@ -56,7 +56,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 	id, _ := strconv.Atoi(params)
-	todo, err := service.UpdateTodo(id, updateTodo)
+	todo, err := service.UpdateTodo(id, updateTodo, a.Db)
 	if err != nil || todo == 0 {
 		c.IndentedJSON(http.StatusConflict, gin.H{"message": "Todo with provided ID doesnt Exists"})
 		return

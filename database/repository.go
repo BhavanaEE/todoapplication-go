@@ -27,13 +27,12 @@ func IsTodoExists(id int, db *sql.DB) (*sql.Rows, error) {
 	rows, err := db.Query("SELECT id, content, completed FROM todo WHERE id = ?", id)
 	return rows, err
 }
-func UpdateTodo(params model.Todo) (int64, error) {
-	db := InitDatabase()
-	stmt, err := db.Prepare("UPDATE todo SET Content = ?, Completed=? WHERE Id = ?")
+func UpdateTodo(params model.Todo, db *sql.DB) (int, error) {
+	stmt, err := db.Prepare("UPDATE todo SET content = ?, completed = ? WHERE id = ?")
 	result, err := stmt.Exec(params.Content, params.Completed, params.Id)
 	affected, err := result.RowsAffected()
 
-	return affected, err
+	return int(affected), err
 }
 
 func DeleteTodo(param string) (int64, error) {

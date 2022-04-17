@@ -51,12 +51,12 @@ func GetTodo(id int, db *sql.DB) (model.Todo, error) {
 	return todo, err
 }
 
-func UpdateTodo(id int, keyvalues model.Todo) (int64, error) {
-	exists, err := database.IsTodoExists(id)
+func UpdateTodo(id int, todo model.Todo, db *sql.DB) (int, error) {
+	exists, err := database.IsTodoExists(id, db)
 	if err != nil || !exists.Next() {
 		return 0, err
 	}
-	return database.UpdateTodo(keyvalues)
+	return database.UpdateTodo(todo, db)
 }
 
 func DeleteTodo(params string) (int64, error) {

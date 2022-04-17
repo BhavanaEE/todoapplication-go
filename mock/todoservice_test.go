@@ -149,3 +149,42 @@ func TestShouldNotCreateTodoWhenIdExists(t *testing.T) {
 	assert.NoError(t, err)
 
 }
+
+func TestShouldUpdateTodoIfIdExists(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
+		AddRow(1, "Golang", true)
+	id := 1
+	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
+
+	query2 := "UPDATE todo SET content = \\?, completed = \\? WHERE id = \\?"
+	prep := mock.ExpectPrepare(query2)
+	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	isUpdated, err := service.UpdateTodo(id, *todo, api.Db)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, isUpdated)
+}
+
+func TestShouldNotUpdateTodo(t *testing.T) {
+	db, mock := NewMock()
+	api := &rest.Api{db}
+	defer func() { db.Close() }()
+
+	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
+	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
+	id := 1
+	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
+
+	query2 := "UPDATE todo SET content = \\?, completed = \\? WHERE id = \\?"
+	prep := mock.ExpectPrepare(query2)
+	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	isUpdated, err := service.UpdateTodo(id, *todo, api.Db)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, isUpdated)
+}
