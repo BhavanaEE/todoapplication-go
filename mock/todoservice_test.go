@@ -206,7 +206,7 @@ func TestShouldDeleteTodoIfIdExists(t *testing.T) {
 
 }
 
-func TestShouldThrowErrorIfIdDoesNotExists(t *testing.T) {
+func TestShouldNotEffectTheRowIfIdDoesNotExistsWhileDeleting(t *testing.T) {
 	db, mock := NewMock()
 	api := &rest.Api{db}
 	defer func() { db.Close() }()
