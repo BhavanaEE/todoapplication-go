@@ -1,4 +1,4 @@
-package mock
+package service
 
 import (
 	"database/sql"
@@ -7,8 +7,6 @@ import (
 	"log"
 	"testing"
 	"todoapplication/model"
-	"todoapplication/rest"
-	"todoapplication/service"
 )
 
 var todo = &model.Todo{Id: 1, Content: "Golang", Completed: false}
@@ -24,9 +22,9 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 
 func TestShouldGetAllTodos(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "SELECT id, content, completed FROM todo"
 
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
@@ -35,7 +33,7 @@ func TestShouldGetAllTodos(t *testing.T) {
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
-	actual, _ := service.GetAllTodos(api.Db)
+	actual, _ := serviceTest.GetAllTodos(db)
 
 	expected := []model.Todo{
 		{Id: 1, Content: "Golang", Completed: false},
@@ -48,9 +46,9 @@ func TestShouldGetAllTodos(t *testing.T) {
 
 func TestShouldFailToGetAllTodos(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "SELECT id, content, completed FROM todo"
 
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
@@ -60,7 +58,7 @@ func TestShouldFailToGetAllTodos(t *testing.T) {
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
-	actual, _ := service.GetAllTodos(api.Db)
+	actual, _ := serviceTest.GetAllTodos(db)
 
 	expected := []model.Todo{
 		{Id: 1, Content: "Golang", Completed: false},
@@ -73,9 +71,9 @@ func TestShouldFailToGetAllTodos(t *testing.T) {
 
 func TestShouldGetTodoById(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
 
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
@@ -83,7 +81,7 @@ func TestShouldGetTodoById(t *testing.T) {
 	id := 1
 	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
 
-	actual, _ := service.GetTodo(id, api.Db)
+	actual, _ := serviceTest.GetTodo(id, db)
 
 	expected := model.Todo{
 		Id: 1, Content: "Golang", Completed: false,
@@ -94,16 +92,16 @@ func TestShouldGetTodoById(t *testing.T) {
 
 func TestShouldReturnEmptyResultForIdDoesNotExist(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
 
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
 	id := 2
 	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
 
-	actual, _ := service.GetTodo(id, api.Db)
+	actual, _ := serviceTest.GetTodo(id, db)
 
 	expected := model.Todo{
 		Id: 0, Content: "", Completed: false,
@@ -114,9 +112,9 @@ func TestShouldReturnEmptyResultForIdDoesNotExist(t *testing.T) {
 
 func TestShouldCreateTodoWhenIdDoesNotExists(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
 	id := 1
@@ -125,16 +123,16 @@ func TestShouldCreateTodoWhenIdDoesNotExists(t *testing.T) {
 	query2 := "INSERT INTO todo \\(id, content, completed\\) VALUES \\(\\?, \\?, \\?\\)"
 	prep := mock.ExpectPrepare(query2)
 	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
-	_, err := service.CreateTodo(*todo, api.Db)
+	_, err := serviceTest.CreateTodo(*todo, db)
 	assert.NoError(t, err)
 
 }
 
 func TestShouldNotCreateTodoWhenIdExists(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
 		AddRow(1, "Golang", false)
@@ -145,16 +143,16 @@ func TestShouldNotCreateTodoWhenIdExists(t *testing.T) {
 	prep := mock.ExpectPrepare(query2)
 	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	_, err := service.CreateTodo(*todo, api.Db)
+	_, err := serviceTest.CreateTodo(*todo, db)
 	assert.NoError(t, err)
 
 }
 
 func TestShouldUpdateTodoIfIdExists(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
 		AddRow(1, "Golang", true)
@@ -165,16 +163,16 @@ func TestShouldUpdateTodoIfIdExists(t *testing.T) {
 	prep := mock.ExpectPrepare(query2)
 	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	isUpdated, err := service.UpdateTodo(id, *todo, api.Db)
+	isUpdated, err := serviceTest.UpdateTodo(id, *todo, db)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, isUpdated)
 }
 
 func TestShouldNotUpdateTodo(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
 	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
 	id := 1
@@ -184,23 +182,23 @@ func TestShouldNotUpdateTodo(t *testing.T) {
 	prep := mock.ExpectPrepare(query2)
 	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	isUpdated, err := service.UpdateTodo(id, *todo, api.Db)
+	isUpdated, err := serviceTest.UpdateTodo(id, *todo, db)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, isUpdated)
 }
 
 func TestShouldDeleteTodoIfIdExists(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "DELETE FROM todo WHERE id = \\?"
 
 	id := 1
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	isDeleted, err := service.DeleteTodo(id, api.Db)
+	isDeleted, err := serviceTest.DeleteTodo(id, db)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, isDeleted)
 
@@ -208,16 +206,16 @@ func TestShouldDeleteTodoIfIdExists(t *testing.T) {
 
 func TestShouldNotEffectTheRowIfIdDoesNotExistsWhileDeleting(t *testing.T) {
 	db, mock := NewMock()
-	api := &rest.Api{db}
 	defer func() { db.Close() }()
 
+	serviceTest := &Service{}
 	query := "DELETE FROM todo WHERE id = \\?"
 
 	id := 4
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 0))
 
-	isDeleted, err := service.DeleteTodo(id, api.Db)
+	isDeleted, err := serviceTest.DeleteTodo(id, db)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, isDeleted)
 }

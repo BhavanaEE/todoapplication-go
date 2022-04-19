@@ -14,6 +14,7 @@ type Api struct {
 }
 
 func (a *Api) GetTodos(c *gin.Context) {
+	service := &service.Service{}
 	todos, err := service.GetAllTodos(a.Db)
 	if err != nil {
 		c.IndentedJSON(http.StatusServiceUnavailable, gin.H{"message": "Server is not ready to handle the request"})
@@ -23,6 +24,7 @@ func (a *Api) GetTodos(c *gin.Context) {
 }
 
 func (a *Api) CreateTodo(c *gin.Context) {
+	service := &service.Service{}
 	var newTodo model.Todo
 	err := c.BindJSON(&newTodo)
 	if err != nil {
@@ -38,6 +40,7 @@ func (a *Api) CreateTodo(c *gin.Context) {
 }
 
 func (a *Api) GetTodo(c *gin.Context) {
+	service := &service.Service{}
 	id, _ := strconv.Atoi(c.Param("Id"))
 	todo, err := service.GetTodo(id, a.Db)
 	if todo.Id == 0 || err != nil {
@@ -48,6 +51,7 @@ func (a *Api) GetTodo(c *gin.Context) {
 }
 
 func (a *Api) UpdateTodo(c *gin.Context) {
+	service := &service.Service{}
 	var updateTodo model.Todo
 	err := c.BindJSON(&updateTodo)
 	params := c.Param("Id")
@@ -65,6 +69,7 @@ func (a *Api) UpdateTodo(c *gin.Context) {
 }
 
 func (a *Api) DeleteTodo(c *gin.Context) {
+	service := &service.Service{}
 	params := c.Param("Id")
 	id, _ := strconv.Atoi(params)
 	todo, err := service.DeleteTodo(id, a.Db)
