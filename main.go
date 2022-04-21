@@ -3,15 +3,23 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"todoapplication/controller"
 	"todoapplication/database"
-	"todoapplication/rest"
+	"todoapplication/service"
 )
 
 func main() {
 	db := database.InitDatabase()
-	api := &rest.Api{db}
+
+	repo := database.NewRepo(db)
+	//service := &service.service{repo}
+	newService := service.NewService(repo)
+
+	api := controller.NewController(newService)
 	router := gin.Default()
-	router.GET("/todos", api.GetTodos)
+	//newRepo := database.NewRepo(db)
+	//newRepo.GetAllTodos()
+	router.GET("/todos", api.GetAllTodos)
 	router.POST("/todos", api.CreateTodo)
 	router.GET("/todos/:Id", api.GetTodo)
 	router.PUT("/todos/:Id", api.UpdateTodo)
