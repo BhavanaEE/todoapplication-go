@@ -1,39 +1,26 @@
 package service
 
 import (
-	"database/sql"
-	"github.com/DATA-DOG/go-sqlmock"
+	"errors"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"testing"
 	"todoapplication/model"
 )
 
-var todo = &model.Todo{Id: 1, Content: "Golang", Completed: false}
-
-func NewMock() (*sql.DB, sqlmock.Sqlmock) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		log.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	return db, mock
-}
+var todo = model.Todo{Id: 1, Content: "Golang", Completed: false}
 
 func TestShouldGetAllTodos(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		getAllTodos: func() ([]model.Todo, error) {
+			actual := []model.Todo{
+				{Id: 1, Content: "Golang", Completed: false},
+				{Id: 2, Content: "Java", Completed: true},
+			}
+			return actual, nil
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "SELECT id, content, completed FROM todo"
-
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
-		AddRow(1, "Golang", false).
-		AddRow(2, "Java", true)
-
-	mock.ExpectQuery(query).WillReturnRows(rows)
-
-	actual, _ := serviceTest.GetAllTodos(db)
+	actual, _ := serviceTest.GetAllTodos()
 
 	expected := []model.Todo{
 		{Id: 1, Content: "Golang", Completed: false},
@@ -45,177 +32,124 @@ func TestShouldGetAllTodos(t *testing.T) {
 }
 
 func TestShouldFailToGetAllTodos(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		getAllTodos: func() ([]model.Todo, error) {
+			actual := []model.Todo{
+				{Id: 1, Content: "Golang", Completed: false},
+				{Id: 2, Content: "Java", Completed: true},
+			}
+			return actual, nil
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "SELECT id, content, completed FROM todo"
-
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
-		AddRow(1, "Golang", false).
-		AddRow(2, "Java", true).
-		AddRow(3, "Python", true)
-
-	mock.ExpectQuery(query).WillReturnRows(rows)
-
-	actual, _ := serviceTest.GetAllTodos(db)
+	actual, _ := serviceTest.GetAllTodos()
 
 	expected := []model.Todo{
 		{Id: 1, Content: "Golang", Completed: false},
-		{Id: 2, Content: "Java", Completed: true},
 	}
 
-	assert.NotEqualf(t, expected, actual, "The two words should be the same.")
+	assert.NotEqual(t, expected, actual, "The two words should be the same.")
 
 }
 
 func TestShouldGetTodoById(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		getTodo: func(id int64) (model.Todo, error) {
+			actual := model.Todo{
+				Id: 1, Content: "Golang", Completed: false}
+			return actual, nil
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
-
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
-		AddRow(1, "Golang", false)
-	id := 1
-	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
-
-	actual, _ := serviceTest.GetTodo(id, db)
+	actual, _ := serviceTest.GetTodo(1)
 
 	expected := model.Todo{
 		Id: 1, Content: "Golang", Completed: false,
 	}
 
 	assert.Equal(t, expected, actual, "The two words should be the same.")
+
 }
 
 func TestShouldReturnEmptyResultForIdDoesNotExist(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		getTodo: func(id int64) (model.Todo, error) {
+			actual := model.Todo{}
+			return actual, nil
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "SELECT id, content, completed FROM todo WHERE id = \\?"
+	actual, _ := serviceTest.GetTodo(10)
 
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
-	id := 2
-	mock.ExpectQuery(query).WithArgs(id).WillReturnRows(rows)
+	expected := model.Todo{}
 
-	actual, _ := serviceTest.GetTodo(id, db)
+	assert.Equal(t, expected, actual, "The two words should be the same.")
+
+}
+
+func TestShouldCreateTodoWhenIdDoesNotExists(t *testing.T) {
+	serviceTest := &Service{
+		createTodo: func(title any, completed any) (model.Todo, error) {
+			actual := model.Todo{
+				Id: 1, Content: "Golang", Completed: false}
+			return actual, nil
+		},
+	}
+
+	actual, _ := serviceTest.createTodo("Golang", false)
 
 	expected := model.Todo{
-		Id: 0, Content: "", Completed: false,
+		Id: 1, Content: "Golang", Completed: false,
+	}
+
+	assert.Equal(t, expected, actual, "The two words should be the same.")
+
+}
+
+func TestShouldUpdateTodoIfIdExists(t *testing.T) {
+	serviceTest := &Service{
+		updateTodo: func(id int, params model.Todo) (model.Todo, error) {
+			actual := model.Todo{
+				Id: 1, Content: "Golang", Completed: true}
+			return actual, nil
+		},
+	}
+
+	actual, _ := serviceTest.UpdateTodo(1, todo)
+
+	expected := model.Todo{
+		Id: 1, Content: "Golang", Completed: true,
 	}
 
 	assert.Equal(t, expected, actual, "The two words should be the same.")
 }
 
-func TestShouldCreateTodoWhenIdDoesNotExists(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
-
-	serviceTest := &Service{}
-	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
-	id := 1
-	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
-
-	query2 := "INSERT INTO todo \\(id, content, completed\\) VALUES \\(\\?, \\?, \\?\\)"
-	prep := mock.ExpectPrepare(query2)
-	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
-	_, err := serviceTest.CreateTodo(*todo, db)
-	assert.NoError(t, err)
-
-}
-
-func TestShouldNotCreateTodoWhenIdExists(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
-
-	serviceTest := &Service{}
-	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
-		AddRow(1, "Golang", false)
-	id := 1
-	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
-
-	query2 := "INSERT INTO todo \\(id, content, completed\\) VALUES \\(\\?, \\?, \\?\\)"
-	prep := mock.ExpectPrepare(query2)
-	prep.ExpectExec().WithArgs(todo.Id, todo.Content, todo.Completed).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	_, err := serviceTest.CreateTodo(*todo, db)
-	assert.NoError(t, err)
-
-}
-
-func TestShouldUpdateTodoIfIdExists(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
-
-	serviceTest := &Service{}
-	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"}).
-		AddRow(1, "Golang", true)
-	id := 1
-	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
-
-	query2 := "UPDATE todo SET content = \\?, completed = \\? WHERE id = \\?"
-	prep := mock.ExpectPrepare(query2)
-	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	isUpdated, err := serviceTest.UpdateTodo(id, *todo, db)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, isUpdated)
-}
-
-func TestShouldNotUpdateTodo(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
-
-	serviceTest := &Service{}
-	query1 := "SELECT id, content, completed FROM todo WHERE id = \\?"
-	rows := sqlmock.NewRows([]string{"Id", "Content", "Completed"})
-	id := 1
-	mock.ExpectQuery(query1).WithArgs(id).WillReturnRows(rows)
-
-	query2 := "UPDATE todo SET content = \\?, completed = \\? WHERE id = \\?"
-	prep := mock.ExpectPrepare(query2)
-	prep.ExpectExec().WithArgs(todo.Content, todo.Completed, todo.Id).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	isUpdated, err := serviceTest.UpdateTodo(id, *todo, db)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, isUpdated)
-}
-
 func TestShouldDeleteTodoIfIdExists(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		deleteTodo: func(id int) error {
+			return nil
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "DELETE FROM todo WHERE id = \\?"
+	actual := serviceTest.deleteTodo(1)
 
-	id := 1
-	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 1))
+	expected := error(nil)
 
-	isDeleted, err := serviceTest.DeleteTodo(id, db)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, isDeleted)
+	assert.Equal(t, expected, actual, "The two words should be the same.")
 
 }
 
 func TestShouldNotEffectTheRowIfIdDoesNotExistsWhileDeleting(t *testing.T) {
-	db, mock := NewMock()
-	defer func() { db.Close() }()
+	serviceTest := &Service{
+		deleteTodo: func(id int) error {
+			return errors.New("Id doesn't exists")
+		},
+	}
 
-	serviceTest := &Service{}
-	query := "DELETE FROM todo WHERE id = \\?"
+	actual := serviceTest.deleteTodo(10)
 
-	id := 4
-	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 0))
+	expected := errors.New("Id doesn't exists")
 
-	isDeleted, err := serviceTest.DeleteTodo(id, db)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, isDeleted)
+	assert.Equal(t, expected, actual, "The two words should be the same.")
+
 }
