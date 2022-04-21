@@ -94,7 +94,6 @@ func TestShouldFailToGetTodoById(t *testing.T) {
 }
 
 func TestShouldCreateTodo(t *testing.T) {
-	var actualTodo model.Todo
 	c := &Controller{createTodo: func(newTodo model.Todo) (model.Todo, error) {
 		return newTodo, nil
 	}}
